@@ -1,4 +1,6 @@
 import { Component, signal } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { load, save } from '../utils/storage';
 
 type ReminderType = 'daily' | 'occasion';
@@ -7,6 +9,7 @@ interface Reminder { id: string; title: string; type: ReminderType; time?: strin
 @Component({
   selector: 'app-reminders',
   standalone: true,
+  imports: [CommonModule, FormsModule, DatePipe],
   template: `
   <section id="reminders" class="bg-white/80 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200">
