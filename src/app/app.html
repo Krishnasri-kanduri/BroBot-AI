@@ -1,34 +1,23 @@
-<div
-  class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200"
->
-  <div class="text-center">
-    <!-- TODO: replace everything here with the actual app! -->
-    <h1
-      class="text-2xl font-semibold text-slate-800 flex items-center justify-center gap-3"
-    >
-      <svg class="animate-spin h-8 w-8 text-slate-400" viewBox="0 0 50 50">
-        <circle
-          class="opacity-30"
-          cx="25"
-          cy="25"
-          r="20"
-          stroke="currentColor"
-          stroke-width="5"
-          fill="none"
-        />
-        <circle
-          class="text-slate-600"
-          cx="25"
-          cy="25"
-          r="20"
-          stroke="currentColor"
-          stroke-width="5"
-          fill="none"
-          stroke-dasharray="100"
-          stroke-dashoffset="75"
-        />
-      </svg>
-      Generating your app...
-    </h1>
+<app-header></app-header>
+<main class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-slate-50 to-slate-100">
+  <section class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-brand-50 text-brand-700 border border-brand-100">Secure • Caring • Context-aware</div>
+      <h1 class="mt-3 text-3xl md:text-5xl font-black tracking-tight text-slate-900">BroBot AI — Your Intelligent Companion</h1>
+      <p class="mt-2 text-slate-600 max-w-3xl">Chat like with a brother, stay on track with smart reminders, press-and-hold SOS for instant alerts to trusted contacts, and keep an eye on health with built-in step tracking and fall detection.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <app-chat-board></app-chat-board>
+      <app-sos-panel></app-sos-panel>
+      <app-reminders></app-reminders>
+      <app-steps-counter></app-steps-counter>
+    </div>
+  </section>
+</main>
+<footer class="border-t border-slate-200 bg-white/70 backdrop-blur">
+  <div class="container mx-auto px-4 py-6 text-xs text-slate-500 flex items-center justify-between">
+    <span>© {{ new Date().getFullYear() }} BroBot AI</span>
+    <span>Privacy-first • Local storage • Optional sharing</span>
   </div>
-</div>
+</footer>
