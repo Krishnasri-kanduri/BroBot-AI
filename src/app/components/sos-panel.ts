@@ -1,4 +1,6 @@
 import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { GeolocationService } from '../services/geolocation.service';
 import { load, save } from '../utils/storage';
 
@@ -7,6 +9,7 @@ interface Contact { id: string; name: string; phone?: string; email?: string }
 @Component({
   selector: 'app-sos-panel',
   standalone: true,
+  imports: [CommonModule, FormsModule],
   template: `
   <section id="sos" class="bg-white/80 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200">
