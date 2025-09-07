@@ -1,9 +1,11 @@
-import { Component, effect } from '@angular/core';
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { StepCounterService } from '../services/step-counter.service';
 
 @Component({
   selector: 'app-steps-counter',
   standalone: true,
+  imports: [CommonModule],
   template: `
   <section id="health" class="bg-white/80 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200">
