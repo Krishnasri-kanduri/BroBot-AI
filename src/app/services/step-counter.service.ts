@@ -14,7 +14,6 @@ export class StepCounterService {
   private lastMagnitude = 0;
   private lastStepTime = 0;
   private moveHandler?: (e: DeviceMotionEvent) => void;
-  private fallHandler?: (e: DeviceMotionEvent) => void;
   fallDetected = signal(false);
 
   private loadSteps(key: string): number {
@@ -40,12 +39,10 @@ export class StepCounterService {
   }
 
   async requestPermission(): Promise<boolean> {
-    // iOS requires permission via DeviceMotionEvent.requestPermission
-    // @ts-expect-error: webkit specific
-    if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+    const DME: any = (globalThis as any).DeviceMotionEvent;
+    if (DME && typeof DME.requestPermission === 'function') {
       try {
-        // @ts-expect-error: iOS API
-        const res = await (DeviceMotionEvent as any).requestPermission();
+        const res = await DME.requestPermission();
         this.permission.set(res === 'granted' ? 'granted' : 'denied');
         return res === 'granted';
       } catch {
@@ -76,13 +73,11 @@ export class StepCounterService {
       const delta = Math.abs(magnitude - baseline);
       const now = Date.now();
 
-      // Step detection: threshold and debounce
       if (delta > 1.2 && now - this.lastStepTime > 350) {
         this.lastStepTime = now;
         this.addSteps(1);
       }
 
-      // Fall detection: very high delta spike
       if (delta > 6.5) {
         this.fallDetected.set(true);
       }
