@@ -1,4 +1,6 @@
-import { Component, effect, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 interface Message { role: 'user' | 'bro'; text: string; ts: number }
 
@@ -16,6 +18,7 @@ function broReply(input: string): string {
 @Component({
   selector: 'app-chat-board',
   standalone: true,
+  imports: [CommonModule, FormsModule],
   template: `
   <section id="chat" class="bg-white/80 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
@@ -43,8 +46,7 @@ function broReply(input: string): string {
       <button type="submit" class="px-4 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700 active:scale-[.99]">Send</button>
     </form>
   </section>
-  `,
-  imports: [],
+  `
 })
 export class ChatBoardComponent {
   messages = signal<Message[]>([]);
