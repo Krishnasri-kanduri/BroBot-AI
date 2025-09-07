@@ -12,4 +12,6 @@ import { StepsCounterComponent } from './components/steps-counter';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {}
+export class App {
+  year = new Date().getFullYear();
+}
