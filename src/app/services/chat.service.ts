@@ -15,17 +15,21 @@ function has(text?: string) { return !!text && text.trim().length > 0; }
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
+  // Set your Gemini API key directly in this constant if you prefer code-based configuration.
+  // Leave empty to use the in-app Settings panel or env.
+  static readonly DEFAULT_GEMINI_KEY = '';
+
   get provider(): 'openai' | 'gemini' | 'endpoint' | 'none' {
     const p = localStorage.getItem('brobot_ai_provider') as any;
     if (p === 'openai' || p === 'gemini' || p === 'endpoint') return p;
-    return 'none';
+    return this.geminiKey ? 'gemini' : 'none';
   }
   set provider(v: 'openai' | 'gemini' | 'endpoint' | 'none') { localStorage.setItem('brobot_ai_provider', v); }
 
   get openaiKey() { return localStorage.getItem('brobot_openai_key') || ''; }
   set openaiKey(v: string) { localStorage.setItem('brobot_openai_key', v); }
 
-  get geminiKey() { return localStorage.getItem('brobot_gemini_key') || ''; }
+  get geminiKey() { return localStorage.getItem('brobot_gemini_key') || ChatService.DEFAULT_GEMINI_KEY; }
   set geminiKey(v: string) { localStorage.setItem('brobot_gemini_key', v); }
 
   get endpoint() { return localStorage.getItem('brobot_chat_endpoint') || ''; }
@@ -59,7 +63,7 @@ export class ChatService {
       } catch {}
     }
 
-    if (this.provider === 'gemini' && has(this.geminiKey)) {
+    if ((this.provider === 'gemini' || (!this.provider && this.geminiKey)) && has(this.geminiKey)) {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiKey}`;
         const parts = payload.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
