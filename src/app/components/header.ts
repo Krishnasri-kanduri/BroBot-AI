@@ -17,10 +17,9 @@ import { RouterLink } from '@angular/router';
         </div>
         <nav class="hidden md:flex items-center gap-6 text-sm text-slate-600">
           <a routerLink="/" class="hover:text-slate-900 transition-colors">Home</a>
-          <a href="#chat" class="hover:text-slate-900 transition-colors">Chat</a>
-          <a href="#reminders" class="hover:text-slate-900 transition-colors">Reminders</a>
-          <a href="#sos" class="hover:text-slate-900 transition-colors">SOS</a>
-          <a href="#health" class="hover:text-slate-900 transition-colors">Health</a>
+          <a routerLink="/chat" class="hover:text-slate-900 transition-colors">Chat</a>
+          <a routerLink="/reminders" class="hover:text-slate-900 transition-colors">Reminders</a>
+          <a routerLink="/safety" class="hover:text-slate-900 transition-colors">Safety</a>
         </nav>
       </div>
       <div class="h-1 bg-gradient-to-r from-brand-500 via-accent-500 to-rose-500"></div>
