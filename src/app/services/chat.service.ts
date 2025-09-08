@@ -17,7 +17,7 @@ function has(text?: string) { return !!text && text.trim().length > 0; }
 export class ChatService {
   // Set your Gemini API key directly in this constant if you prefer code-based configuration.
   // Leave empty to use the in-app Settings panel or env.
-  static readonly DEFAULT_GEMINI_KEY = '';
+  static readonly DEFAULT_GEMINI_KEY = 'AIzaSyCWg8CZXzRuLrLCHw_0NF8-Jw21zha7iNM';
 
   get provider(): 'openai' | 'gemini' | 'endpoint' | 'none' {
     const p = localStorage.getItem('brobot_ai_provider') as any;
