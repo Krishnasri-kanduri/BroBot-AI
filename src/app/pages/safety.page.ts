@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
-import { SosPanelComponent } from '../components/sos-panel';
-import { StepsCounterComponent } from '../components/steps-counter';
+import { Component } from "@angular/core";
+import { SosPanelComponent } from "../components/sos-panel";
+import { StepsCounterComponent } from "../components/steps-counter";
 
 @Component({
-  selector: 'app-safety-page',
+  selector: "app-safety-page",
   standalone: true,
   imports: [SosPanelComponent, StepsCounterComponent],
   template: `
@@ -13,6 +13,6 @@ import { StepsCounterComponent } from '../components/steps-counter';
         <app-steps-counter></app-steps-counter>
       </div>
     </section>
-  `
+  `,
 })
 export class SafetyPage {}
