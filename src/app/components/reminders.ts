@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { load, save } from '../utils/storage';
+import { NotificationService } from '../services/notification.service';
 
 type ReminderType = 'daily' | 'occasion';
 interface Reminder { id: string; title: string; type: ReminderType; time?: string; date?: string; done?: boolean }
@@ -54,8 +55,40 @@ export class RemindersComponent {
   time = '18:00';
   date = '';
 
+  constructor(private notify: NotificationService) {
+    this.enableNotifications();
+    // schedule existing on load
+    for (const r of this.reminders()) this.schedule(r);
+  }
+
+  private async enableNotifications() {
+    await this.notify.ensurePermission();
+  }
+
   private persist() {
     save('brobot_reminders', this.reminders());
+  }
+
+  private schedule(r: Reminder) {
+    const when = this.nextTriggerTime(r);
+    if (!when) return;
+    this.notify.schedule(r.id, when, 'Reminder', r.title);
+  }
+
+  private nextTriggerTime(r: Reminder): number | null {
+    const now = new Date();
+    if (r.type === 'daily' && r.time) {
+      const [hh, mm] = r.time.split(':').map(Number);
+      const d = new Date();
+      d.setHours(hh, mm || 0, 0, 0);
+      if (d.getTime() <= now.getTime()) d.setDate(d.getDate() + 1);
+      return d.getTime();
+    }
+    if (r.type === 'occasion' && r.date) {
+      const t = new Date(r.date).getTime();
+      return t > now.getTime() ? t : null;
+    }
+    return null;
   }
 
   add(e: Event) {
@@ -66,6 +99,7 @@ export class RemindersComponent {
     if (this.type === 'occasion') r.date = this.date;
     this.reminders.update((arr) => [r, ...arr]);
     this.persist();
+    this.schedule(r);
     this.title = '';
   }
 
@@ -77,5 +111,6 @@ export class RemindersComponent {
   remove(r: Reminder) {
     this.reminders.update(arr => arr.filter(x => x.id!==r.id));
     this.persist();
+    this.notify.cancel(r.id);
   }
 }
