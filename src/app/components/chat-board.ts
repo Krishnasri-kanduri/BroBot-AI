@@ -63,7 +63,7 @@ interface Message { role: 'user' | 'bro'; text: string; ts: number }
       </div>
       <div *ngIf="typing" class="text-xs text-slate-500">BroBot is typing…</div>
       <div *ngIf="messages().length === 0" class="h-full grid place-items-center text-center text-slate-500 text-sm">
-        Say hi! I can set reminders, watch your back with SOS, and track your steps.
+        Your AI brother — chat anything.
       </div>
     </div>
 
@@ -80,13 +80,19 @@ export class ChatBoardComponent {
   typing = false;
   showSettings = false;
 
-  provider = localStorage.getItem('brobot_ai_provider') || 'none';
-  openaiKey = localStorage.getItem('brobot_openai_key') || '';
-  geminiKey = localStorage.getItem('brobot_gemini_key') || '';
-  endpoint = localStorage.getItem('brobot_chat_endpoint') || '';
-  model = localStorage.getItem('brobot_model') || 'gpt-4o-mini';
+  provider = 'none';
+  openaiKey = '';
+  geminiKey = '';
+  endpoint = '';
+  model = 'gpt-4o-mini';
 
-  constructor(private ai: ChatService) {}
+  constructor(private ai: ChatService) {
+    this.provider = this.ai.provider;
+    this.openaiKey = this.ai.openaiKey;
+    this.geminiKey = this.ai.geminiKey;
+    this.endpoint = this.ai.endpoint;
+    this.model = this.ai.model;
+  }
 
   isOnline() { return this.provider !== 'none'; }
   onlineLabel() { return this.isOnline() ? 'Online' : 'Demo'; }
