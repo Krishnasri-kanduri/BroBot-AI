@@ -77,7 +77,7 @@ export class RemindersComponent {
   private schedule(r: Reminder) {
     const when = this.nextTriggerTime(r);
     if (!when) return;
-    this.notify.schedule(r.id, when, 'Reminder', r.title);
+    this.notify.schedule(r.id, when, r.title, 'It\'s time.');
   }
 
   private nextTriggerTime(r: Reminder): number | null {
