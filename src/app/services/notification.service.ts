@@ -28,7 +28,7 @@ export class NotificationService {
     try {
       const reg = await navigator.serviceWorker?.getRegistration();
       if (reg) {
-        await reg.showNotification(title, { body, icon: '/favicon.ico', badge: '/favicon.ico', vibrate: [150,70,150,70,150] });
+        await reg.showNotification(title, { body, icon: '/favicon.ico', badge: '/favicon.ico' });
       } else if ('Notification' in window && Notification.permission === 'granted') {
         new Notification(title, { body });
       }
