@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { load, save } from '../utils/storage';
 import { NotificationService } from '../services/notification.service';
+import { FcmService } from '../services/fcm.service';
 
 type ReminderType = 'daily' | 'occasion';
 interface Reminder { id: string; title: string; type: ReminderType; time?: string; date?: string; done?: boolean }
@@ -69,7 +70,7 @@ export class RemindersComponent {
   occDay = new Date().getDate();
   perm: NotificationPermission = (typeof Notification !== 'undefined') ? Notification.permission : 'denied';
 
-  constructor(private notify: NotificationService) {
+  constructor(private notify: NotificationService, private fcm: FcmService) {
     // schedule existing on load
     for (const r of this.reminders()) this.schedule(r);
   }
@@ -77,7 +78,7 @@ export class RemindersComponent {
   async enableNotifications() {
     this.perm = await this.notify.ensurePermission();
     if (this.perm === 'granted') {
-      // show a proof-of-work toast/notification
+      await this.fcm.ensureToken();
       setTimeout(() => this.notify.show('Notifications enabled', 'You will get reminder alerts.'), 0);
     }
   }
