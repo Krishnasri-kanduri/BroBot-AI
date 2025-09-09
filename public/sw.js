@@ -20,11 +20,19 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
+  const title = event.notification?.title || 'BroBot Reminder';
+  const body = event.notification?.body || 'It\'s time.';
   event.notification.close();
-  event.waitUntil(self.clients.matchAll({ type: 'window' }).then((clientsArr) => {
-    for (const client of clientsArr) {
-      if ('focus' in client) return client.focus();
+  event.waitUntil((async () => {
+    const clientsArr = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (clientsArr.length) {
+      await clientsArr[0].focus();
+      clientsArr[0].postMessage({ type: 'REMINDER_ALERT', title, body });
+      return;
     }
-    if (self.clients.openWindow) return self.clients.openWindow('/reminders');
-  }));
+    if (self.clients.openWindow) {
+      const cl = await self.clients.openWindow('/reminders');
+      // Cannot reliably postMessage to new window immediately; it will show toast on load if implemented.
+    }
+  })());
 });
