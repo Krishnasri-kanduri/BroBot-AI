@@ -12,11 +12,18 @@ export class NotificationService {
     return Notification.permission;
   }
 
-  show(title: string, body: string) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      try { new Notification(title, { body }); } catch {}
+  async show(title: string, body: string) {
+    try {
+      const reg = await navigator.serviceWorker?.getRegistration();
+      if (reg) {
+        await reg.showNotification(title, { body, icon: '/favicon.ico', badge: '/favicon.ico', vibrate: [150,70,150,70,150] });
+      } else if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body });
+      }
+    } catch {}
+    if (document.visibilityState === 'visible') {
+      this.playBeep(3000);
     }
-    this.playBeep(3_000);
   }
 
   schedule(id: string, atMs: number, title: string, body: string) {
@@ -25,6 +32,7 @@ export class NotificationService {
     const timer = window.setTimeout(() => {
       this.show(title, body);
       this.timers.delete(id);
+      // auto-reschedule daily reminders handled by caller if needed
     }, delay);
     this.timers.set(id, timer);
   }
