@@ -20,7 +20,7 @@ interface Reminder { id: string; title: string; type: ReminderType; time?: strin
 
     <div *ngIf="perm!=='granted'" class="mx-4 mt-4 mb-0 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center justify-between">
       <div>Notifications are off. Enable to get popup alerts at reminder time.</div>
-      <button (click)="enableNotifications()" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white">Enable</button>
+      <button type="button" (click)="enableNotifications()" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white">Enable</button>
     </div>
 
     <form (submit)="add($event)" class="p-4 grid grid-cols-1 md:grid-cols-5 gap-3">
@@ -76,6 +76,10 @@ export class RemindersComponent {
 
   async enableNotifications() {
     this.perm = await this.notify.ensurePermission();
+    if (this.perm === 'granted') {
+      // show a proof-of-work toast/notification
+      setTimeout(() => this.notify.show('Notifications enabled', 'You will get reminder alerts.'), 0);
+    }
   }
 
   private persist() {
