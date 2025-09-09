@@ -25,7 +25,7 @@ export class NotificationService {
     } catch {}
     if (document.visibilityState === 'visible') {
       this.toast.show(title, body, 'warning');
-      this.playBeep(3000);
+      this.playBeep(5000);
     }
   }
 
