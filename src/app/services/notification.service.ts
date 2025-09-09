@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private timers = new Map<string, number>();
+  constructor(private toast: ToastService) {}
 
   async ensurePermission(): Promise<NotificationPermission> {
     if (!('Notification' in window)) return 'denied';
@@ -22,6 +24,7 @@ export class NotificationService {
       }
     } catch {}
     if (document.visibilityState === 'visible') {
+      this.toast.show(title, body, 'warning');
       this.playBeep(3000);
     }
   }
