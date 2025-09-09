@@ -4,7 +4,17 @@ import { ToastService } from './toast.service';
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private timers = new Map<string, number>();
-  constructor(private toast: ToastService) {}
+  constructor(private toast: ToastService) {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (ev: MessageEvent) => {
+        if (ev.data?.type === 'REMINDER_ALERT') {
+          const { title, body } = ev.data;
+          this.toast.show(title || 'Reminder', body || "It's time.", 'warning');
+          this.playBeep(5000);
+        }
+      });
+    }
+  }
 
   async ensurePermission(): Promise<NotificationPermission> {
     if (!('Notification' in window)) return 'denied';
