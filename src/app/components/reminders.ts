@@ -30,7 +30,12 @@ interface Reminder { id: string; title: string; type: ReminderType; time?: strin
         <option value="occasion">Occasion</option>
       </select>
       <input *ngIf="type==='daily'" [(ngModel)]="time" name="time" type="time" class="px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-      <input *ngIf="type==='occasion'" [(ngModel)]="date" name="date" type="datetime-local" class="px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+      <div *ngIf="type==='occasion'" class="flex gap-2">
+        <select [(ngModel)]="occMonth" name="occMonth" class="px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <option *ngFor="let m of months; let i = index" [value]="i+1">{{ m }}</option>
+        </select>
+        <input [(ngModel)]="occDay" name="occDay" type="number" min="1" max="31" class="w-24 px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Day" />
+      </div>
       <button type="submit" class="px-4 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700">Add</button>
     </form>
 
@@ -40,7 +45,7 @@ interface Reminder { id: string; title: string; type: ReminderType; time?: strin
           <div class="font-medium text-slate-800" [class.line-through]="r.done">{{ r.title }}</div>
           <div class="text-xs text-slate-500">
             <ng-container *ngIf="r.type==='daily'">Daily at {{ r.time }}</ng-container>
-            <ng-container *ngIf="r.type==='occasion'">On {{ r.date | date:'medium' }}</ng-container>
+            <ng-container *ngIf="r.type==='occasion'">On {{ formatOccasion(r.date) }}</ng-container>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -59,6 +64,9 @@ export class RemindersComponent {
   type: ReminderType = 'daily';
   time = '18:00';
   date = '';
+  months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  occMonth = new Date().getMonth() + 1;
+  occDay = new Date().getDate();
   perm: NotificationPermission = (typeof Notification !== 'undefined') ? Notification.permission : 'denied';
 
   constructor(private notify: NotificationService) {
@@ -90,8 +98,11 @@ export class RemindersComponent {
       return d.getTime();
     }
     if (r.type === 'occasion' && r.date) {
-      const t = new Date(r.date).getTime();
-      return t > now.getTime() ? t : null;
+      const [mmS, ddS] = r.date.split('-');
+      const mm = Number(mmS) - 1; const dd = Number(ddS);
+      const year = (now.getMonth() > mm || (now.getMonth() === mm && now.getDate() > dd)) ? now.getFullYear() + 1 : now.getFullYear();
+      const d = new Date(year, mm, dd, 9, 0, 0, 0);
+      return d.getTime();
     }
     return null;
   }
@@ -101,7 +112,7 @@ export class RemindersComponent {
     const r: Reminder = { id: crypto.randomUUID(), title: this.title.trim(), type: this.type };
     if (!r.title) return;
     if (this.type === 'daily') r.time = this.time;
-    if (this.type === 'occasion') r.date = this.date;
+    if (this.type === 'occasion') r.date = `${String(this.occMonth).padStart(2,'0')}-${String(this.occDay).padStart(2,'0')}`;
     this.reminders.update((arr) => [r, ...arr]);
     this.persist();
     this.schedule(r);
@@ -117,5 +128,12 @@ export class RemindersComponent {
     this.reminders.update(arr => arr.filter(x => x.id!==r.id));
     this.persist();
     this.notify.cancel(r.id);
+  }
+
+  formatOccasion(md?: string): string {
+    if (!md) return '';
+    const [mmS, ddS] = md.split('-');
+    const idx = Math.max(1, Math.min(12, Number(mmS||'1')))-1;
+    return `${this.months[idx]} ${Number(ddS||'1')}`;
   }
 }
