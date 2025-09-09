@@ -18,7 +18,7 @@ interface Reminder { id: string; title: string; type: ReminderType; time?: strin
       <p class="text-xs text-slate-500">Daily routines and one-off occasions</p>
     </div>
 
-    <div *ngIf="perm!=='granted'" class="mx-4 mt-4 mb-0 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center justify-between">
+    <div *ngIf="perm!=='granted'" class="relative z-10 pointer-events-auto mx-4 mt-4 mb-0 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center justify-between" aria-live="polite">
       <div>Notifications are off. Enable to get popup alerts at reminder time.</div>
       <button type="button" (click)="enableNotifications()" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white">Enable</button>
     </div>
