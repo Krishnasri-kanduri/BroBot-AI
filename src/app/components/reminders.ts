@@ -18,6 +18,11 @@ interface Reminder { id: string; title: string; type: ReminderType; time?: strin
       <p class="text-xs text-slate-500">Daily routines and one-off occasions</p>
     </div>
 
+    <div *ngIf="perm!=='granted'" class="mx-4 mt-4 mb-0 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center justify-between">
+      <div>Notifications are off. Enable to get popup alerts at reminder time.</div>
+      <button (click)="enableNotifications()" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white">Enable</button>
+    </div>
+
     <form (submit)="add($event)" class="p-4 grid grid-cols-1 md:grid-cols-5 gap-3">
       <input [(ngModel)]="title" name="title" required placeholder="Reminder title" class="md:col-span-2 px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500" />
       <select [(ngModel)]="type" name="type" class="px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500">
