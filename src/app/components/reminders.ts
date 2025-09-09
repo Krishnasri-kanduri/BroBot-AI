@@ -59,15 +59,15 @@ export class RemindersComponent {
   type: ReminderType = 'daily';
   time = '18:00';
   date = '';
+  perm: NotificationPermission = (typeof Notification !== 'undefined') ? Notification.permission : 'denied';
 
   constructor(private notify: NotificationService) {
-    this.enableNotifications();
     // schedule existing on load
     for (const r of this.reminders()) this.schedule(r);
   }
 
-  private async enableNotifications() {
-    await this.notify.ensurePermission();
+  async enableNotifications() {
+    this.perm = await this.notify.ensurePermission();
   }
 
   private persist() {
