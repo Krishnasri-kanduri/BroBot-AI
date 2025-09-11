@@ -27,15 +27,26 @@ interface Contact { id: string; name: string; phone?: string; email?: string }
         </button>
         <div class="mt-3 text-sm text-slate-600">Press and hold to send alert</div>
         <div *ngIf="countdown()>0" class="mt-1 text-xs text-rose-700">Sending in {{countdown()}}s...</div>
-        <div class="mt-3 text-xs text-slate-600">
+        <div class="mt-3 text-xs text-slate-600 w-full">
           <ng-container *ngIf="loc(); else noLoc">
-            <div>Location: {{ loc()?.lat | number:'1.5-6' }}, {{ loc()?.lon | number:'1.5-6' }} <span *ngIf="loc()?.acc">±{{ loc()?.acc | number:'1.0-0' }}m</span>
-              <a [href]="mapHref()" target="_blank" rel="noopener" class="ml-2 text-brand-600 underline">Open map</a>
-              <button (click)="refreshLocation()" class="ml-2 px-2 py-1 rounded border">Refresh</button>
+            <div class="rounded-xl border bg-white p-3">
+              <div class="font-medium text-slate-800 mb-1">Current Location</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                <div>Latitude: <span class="font-mono">{{ loc()?.lat | number:'1.6-6' }}</span></div>
+                <div>Longitude: <span class="font-mono">{{ loc()?.lon | number:'1.6-6' }}</span></div>
+                <div>Accuracy: <span class="font-mono">{{ loc()?.acc | number:'1.0-0' }}m</span></div>
+                <div>Retrieved at: <span class="font-mono">{{ retrievedAt | date:'medium' }}</span></div>
+                <div class="sm:col-span-2">Address: <span class="font-mono break-words">{{ address || 'Finding address…' }}</span></div>
+              </div>
+              <div class="mt-2 flex gap-2">
+                <button (click)="copyCoords()" class="px-2 py-1 rounded border">Copy Coords</button>
+                <button (click)="copyAddress()" class="px-2 py-1 rounded border" [disabled]="!address">Copy Address</button>
+                <button (click)="refreshLocation()" class="ml-auto px-2 py-1 rounded border">Get Exact Location</button>
+              </div>
             </div>
           </ng-container>
           <ng-template #noLoc>
-            <div>Location not available. <button (click)="refreshLocation()" class="ml-2 px-2 py-1 rounded border">Enable</button></div>
+            <div class="rounded-xl border bg-white p-3">Location not available. <button (click)="refreshLocation()" class="ml-2 px-2 py-1 rounded border">Enable</button></div>
           </ng-template>
         </div>
       </div>
@@ -113,26 +124,38 @@ export class SosPanelComponent {
 
   loc = signal<{ lat: number; lon: number; acc?: number } | null>(null);
   locErr = signal<string | null>(null);
+  address: string | null = null;
+  retrievedAt: number | null = null;
 
   async refreshLocation() {
     const pos = await this.geo.getCurrentPosition();
     if (pos) {
       this.loc.set({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy });
+      this.retrievedAt = Date.now();
       this.locErr.set(null);
+      this.address = await this.geo.reverseGeocode(pos.coords.latitude, pos.coords.longitude);
     } else {
       this.loc.set(null);
+      this.address = null;
+      this.retrievedAt = null;
       this.locErr.set('Location unavailable');
     }
   }
 
-  mapHref(): string | null {
+  copyCoords() {
     const l = this.loc();
-    return l ? `https://maps.google.com/?q=${l.lat},${l.lon}` : null;
+    if (!l) return;
+    navigator.clipboard?.writeText(`${l.lat}, ${l.lon}`).catch(() => {});
+  }
+
+  copyAddress() {
+    if (!this.address) return;
+    navigator.clipboard?.writeText(this.address).catch(() => {});
   }
 
   private async sendAlert() {
-    const mapLink = this.mapHref() || await this.geo.getShareableMapLink();
-    const msg = `SOS from BroBot: I need help.${mapLink ? ` My location: ${mapLink}` : ''}`;
+    const l = this.loc();
+    const msg = `SOS from BroBot: I need help.` + (l ? ` My coordinates: ${l.lat}, ${l.lon}${this.address ? ` | ${this.address}` : ''}` : '');
 
     // Try Web Share API first
     if (navigator.share) {
