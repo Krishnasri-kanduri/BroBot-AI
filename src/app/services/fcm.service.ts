@@ -8,6 +8,7 @@ import { NotificationService } from './notification.service';
 @Injectable({ providedIn: 'root' })
 export class FcmService {
   private ready: Promise<boolean>;
+  private CF_BASE = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
 
   constructor(private toast: ToastService, private notify: NotificationService) {
     this.ready = this.init();
@@ -34,6 +35,15 @@ export class FcmService {
       const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: await navigator.serviceWorker.getRegistration() || undefined });
       if (token) {
         localStorage.setItem('brobot_fcm_token', token);
+        // Register token with backend
+        const tzOffset = -new Date().getTimezoneOffset();
+        try {
+          await fetch(`${this.CF_BASE}/registerToken`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, tzOffset, userAgent: navigator.userAgent })
+          });
+        } catch {}
         this.toast.show('Push enabled', 'You will receive reminder alerts even when closed.', 'success');
         onMessage(messaging, (payload) => {
           const title = payload.notification?.title || 'Reminder';
