@@ -83,7 +83,7 @@ export class SosPanelComponent {
   phone = '';
   email = '';
 
-  constructor(private geo: GeolocationService) { setTimeout(() => this.refreshLocation(), 0); }
+  constructor(private geo: GeolocationService, private toast: ToastService) { setTimeout(() => this.refreshLocation(), 0); }
 
   private persist() { save('brobot_contacts', this.contacts()); }
 
@@ -103,6 +103,10 @@ export class SosPanelComponent {
 
   press(down: boolean) {
     if (down) {
+      if (this.contacts().length === 0) {
+        this.toast.show('Add a trusted contact', 'Phone or email required to send SOS', 'warning');
+        return;
+      }
       if (this.timer) clearInterval(this.timer);
       this.countdown.set(3);
       this.timer = setInterval(() => {
@@ -159,23 +163,43 @@ export class SosPanelComponent {
     const l = this.loc();
     const msg = `SOS from BroBot: I need help.` + (l ? ` My coordinates: ${l.lat}, ${l.lon}${this.address ? ` | ${this.address}` : ''}` : '');
 
-    // Try Web Share API first
+    // Try Web Share API first (best UX on mobile)
     if (navigator.share) {
       try {
         await navigator.share({ title: 'SOS', text: msg });
+        this.toast.show('SOS shared', 'Message opened in your share sheet', 'success');
+        return;
       } catch {}
     }
 
-    // Fallback to sms/mailto for each contact
-    for (const c of this.contacts()) {
-      if (c.phone) {
-        const href = `sms:${encodeURIComponent(c.phone)}?&body=${encodeURIComponent(msg)}`;
-        window.open(href, '_blank');
-      }
-      if (c.email) {
-        const href = `mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('SOS - Need Help')}&body=${encodeURIComponent(msg)}`;
-        window.open(href, '_blank');
+    const list = this.contacts();
+    if (!list.length) { this.toast.show('No contacts', 'Add a phone or email first', 'warning'); return; }
+
+    // Prefer SMS first for primary navigation (less likely to be blocked)
+    let primaryHref: string | null = null;
+    let opened = false;
+    for (const c of list) {
+      if (!primaryHref && c.phone) primaryHref = `sms:${encodeURIComponent(c.phone)}?&body=${encodeURIComponent(msg)}`;
+      if (!primaryHref && c.email) primaryHref = `mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('SOS - Need Help')}&body=${encodeURIComponent(msg)}`;
+    }
+    if (primaryHref) {
+      try {
+        window.location.href = primaryHref; // navigation is less restricted than popup
+        opened = true;
+      } catch {}
+    }
+
+    // Open remaining contacts in new tabs (may be blocked by popup blockers)
+    for (const c of list) {
+      const hrefs: string[] = [];
+      if (c.phone) hrefs.push(`sms:${encodeURIComponent(c.phone)}?&body=${encodeURIComponent(msg)}`);
+      if (c.email) hrefs.push(`mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('SOS - Need Help')}&body=${encodeURIComponent(msg)}`);
+      for (const href of hrefs) {
+        try { window.open(href, '_blank'); } catch {}
       }
     }
+
+    try { await navigator.clipboard?.writeText(msg); } catch {}
+    this.toast.show(opened ? 'SOS initiated' : 'SOS prepared', opened ? 'If not delivered, check the opened app' : 'Message copied—paste into your app if tabs were blocked.', opened ? 'success' : 'warning');
   }
 }
