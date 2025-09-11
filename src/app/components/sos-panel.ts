@@ -159,6 +159,17 @@ export class SosPanelComponent {
     navigator.clipboard?.writeText(this.address).catch(() => {});
   }
 
+  private isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream; }
+  private isAndroid() { return /Android/.test(navigator.userAgent); }
+  private smsHref(phone: string, body: string) {
+    // iOS often needs sms:number&body=...; Android prefers sms:number?body=...
+    const p = encodeURIComponent(phone);
+    const b = encodeURIComponent(body);
+    if (this.isIOS()) return `sms:${p}&body=${b}`;
+    if (this.isAndroid()) return `sms:${p}?body=${b}`;
+    return null; // desktop likely has no handler
+  }
+
   private async sendAlert() {
     const l = this.loc();
     const msg = `SOS from BroBot: I need help.` + (l ? ` My coordinates: ${l.lat}, ${l.lon}${this.address ? ` | ${this.address}` : ''}` : '');
@@ -175,31 +186,36 @@ export class SosPanelComponent {
     const list = this.contacts();
     if (!list.length) { this.toast.show('No contacts', 'Add a phone or email first', 'warning'); return; }
 
-    // Prefer SMS first for primary navigation (less likely to be blocked)
+    // Compose primary link by device capabilities
     let primaryHref: string | null = null;
-    let opened = false;
     for (const c of list) {
-      if (!primaryHref && c.phone) primaryHref = `sms:${encodeURIComponent(c.phone)}?&body=${encodeURIComponent(msg)}`;
+      if (!primaryHref && c.phone) primaryHref = this.smsHref(c.phone, msg);
       if (!primaryHref && c.email) primaryHref = `mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('SOS - Need Help')}&body=${encodeURIComponent(msg)}`;
     }
+
+    let opened = false;
     if (primaryHref) {
-      try {
-        window.location.href = primaryHref; // navigation is less restricted than popup
-        opened = true;
-      } catch {}
+      try { window.location.assign(primaryHref); opened = true; } catch {}
+    } else if (this.isAndroid() || this.isIOS()) {
+      // If phone present but no handler constructed (rare), fallback to generic sms: with body only
+      const anyPhone = list.find(c => c.phone)?.phone;
+      if (anyPhone) {
+        const alt = this.isIOS() ? `sms:&body=${encodeURIComponent(msg)}` : `sms:?body=${encodeURIComponent(msg)}`;
+        try { window.location.assign(alt); opened = true; } catch {}
+      }
     }
 
-    // Open remaining contacts in new tabs (may be blocked by popup blockers)
-    for (const c of list) {
-      const hrefs: string[] = [];
-      if (c.phone) hrefs.push(`sms:${encodeURIComponent(c.phone)}?&body=${encodeURIComponent(msg)}`);
-      if (c.email) hrefs.push(`mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('SOS - Need Help')}&body=${encodeURIComponent(msg)}`);
-      for (const href of hrefs) {
-        try { window.open(href, '_blank'); } catch {}
+    // Secondary sends (may be blocked). Do not spam on desktop.
+    if (this.isAndroid() || this.isIOS()) {
+      for (const c of list) {
+        if (c.email) {
+          const href = `mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('SOS - Need Help')}&body=${encodeURIComponent(msg)}`;
+          try { window.open(href, '_blank'); } catch {}
+        }
       }
     }
 
     try { await navigator.clipboard?.writeText(msg); } catch {}
-    this.toast.show(opened ? 'SOS initiated' : 'SOS prepared', opened ? 'If not delivered, check the opened app' : 'Message copied—paste into your app if tabs were blocked.', opened ? 'success' : 'warning');
+    this.toast.show(opened ? 'SOS initiated' : 'SOS prepared', opened ? 'Check your messaging/email app' : 'Copy pasted to clipboard—open your app and send.', opened ? 'success' : 'warning');
   }
 }
