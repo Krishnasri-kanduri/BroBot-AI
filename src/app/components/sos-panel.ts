@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GeolocationService } from '../services/geolocation.service';
 import { load, save } from '../utils/storage';
+import { ToastService } from '../services/toast.service';
 
 interface Contact { id: string; name: string; phone?: string; email?: string }
 
