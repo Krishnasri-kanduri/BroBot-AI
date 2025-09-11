@@ -25,6 +25,31 @@ export class GeolocationService {
     }
   }
 
+  async watchBestFix(timeoutMs = 15000, minAccuracy = 20): Promise<GeolocationPosition | null> {
+    if (!('geolocation' in navigator)) return null;
+    return new Promise((resolve) => {
+      let best: GeolocationPosition | null = null;
+      const id = navigator.geolocation.watchPosition(
+        (pos) => {
+          if (!best || pos.coords.accuracy < best.coords.accuracy) {
+            best = pos;
+          }
+          if (pos.coords.accuracy <= minAccuracy) {
+            clearTimeout(timer);
+            navigator.geolocation.clearWatch(id);
+            resolve(best);
+          }
+        },
+        () => {},
+        { enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs }
+      );
+      const timer = setTimeout(() => {
+        navigator.geolocation.clearWatch(id);
+        resolve(best);
+      }, timeoutMs);
+    });
+  }
+
   async getShareableMapLink(): Promise<string | null> {
     const pos = await this.getCurrentPosition();
     if (!pos) return null;
