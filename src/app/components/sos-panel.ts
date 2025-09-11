@@ -128,7 +128,9 @@ export class SosPanelComponent {
   retrievedAt: number | null = null;
 
   async refreshLocation() {
-    const pos = await this.geo.getCurrentPosition();
+    // Try high-accuracy multi-fix first
+    const best = await this.geo.watchBestFix(15000, 20);
+    const pos = best || await this.geo.getCurrentPosition();
     if (pos) {
       this.loc.set({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy });
       this.retrievedAt = Date.now();
