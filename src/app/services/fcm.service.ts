@@ -55,4 +55,16 @@ export class FcmService {
     } catch {}
     return null;
   }
+
+  async syncReminders(reminders: any[]): Promise<void> {
+    const token = localStorage.getItem('brobot_fcm_token');
+    if (!token) return;
+    try {
+      await fetch(`${this.CF_BASE}/syncReminders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, reminders })
+      });
+    } catch {}
+  }
 }
