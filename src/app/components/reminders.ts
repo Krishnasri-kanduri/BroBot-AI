@@ -79,12 +79,15 @@ export class RemindersComponent {
     this.perm = await this.notify.ensurePermission();
     if (this.perm === 'granted') {
       await this.fcm.ensureToken();
+      await this.fcm.syncReminders(this.reminders());
       setTimeout(() => this.notify.show('Notifications enabled', 'You will get reminder alerts.'), 0);
     }
   }
 
   private persist() {
-    save('brobot_reminders', this.reminders());
+    const data = this.reminders();
+    save('brobot_reminders', data);
+    this.fcm.syncReminders(data);
   }
 
   private schedule(r: Reminder) {
