@@ -1,14 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class GeolocationService {
   async getCurrentPosition(): Promise<GeolocationPosition | null> {
-    if (!('geolocation' in navigator)) return null;
+    if (!("geolocation" in navigator)) return null;
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve(pos),
         () => resolve(null),
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 },
       );
     });
   }
@@ -16,7 +16,7 @@ export class GeolocationService {
   async reverseGeocode(lat: number, lon: number): Promise<string | null> {
     try {
       const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-      const res = await fetch(url, { headers: { 'accept': 'application/json' } });
+      const res = await fetch(url, { headers: { accept: "application/json" } });
       const data = await res.json();
       const name = data?.display_name as string | undefined;
       return name || null;
@@ -25,8 +25,11 @@ export class GeolocationService {
     }
   }
 
-  async watchBestFix(timeoutMs = 15000, minAccuracy = 20): Promise<GeolocationPosition | null> {
-    if (!('geolocation' in navigator)) return null;
+  async watchBestFix(
+    timeoutMs = 15000,
+    minAccuracy = 20,
+  ): Promise<GeolocationPosition | null> {
+    if (!("geolocation" in navigator)) return null;
     return new Promise((resolve) => {
       let best: GeolocationPosition | null = null;
       const id = navigator.geolocation.watchPosition(
@@ -41,7 +44,7 @@ export class GeolocationService {
           }
         },
         () => {},
-        { enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs }
+        { enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs },
       );
       const timer = setTimeout(() => {
         navigator.geolocation.clearWatch(id);
