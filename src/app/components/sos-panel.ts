@@ -21,11 +21,23 @@ interface Contact { id: string; name: string; phone?: string; email?: string }
     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="flex flex-col items-center justify-center rounded-2xl border p-6 bg-gradient-to-b from-rose-50 to-white">
         <button (mousedown)="press(true)" (mouseup)="press(false)" (mouseleave)="press(false)"
+                (touchstart)="press(true)" (touchend)="press(false)" (touchcancel)="press(false)"
                 class="h-40 w-40 rounded-full bg-rose-600 text-white font-semibold text-xl shadow hover:bg-rose-700 active:scale-[.98]">
           SOS
         </button>
         <div class="mt-3 text-sm text-slate-600">Press and hold to send alert</div>
         <div *ngIf="countdown()>0" class="mt-1 text-xs text-rose-700">Sending in {{countdown()}}s...</div>
+        <div class="mt-3 text-xs text-slate-600">
+          <ng-container *ngIf="loc(); else noLoc">
+            <div>Location: {{ loc()?.lat | number:'1.5-6' }}, {{ loc()?.lon | number:'1.5-6' }} <span *ngIf="loc()?.acc">±{{ loc()?.acc | number:'1.0-0' }}m</span>
+              <a [href]="mapHref()" target="_blank" rel="noopener" class="ml-2 text-brand-600 underline">Open map</a>
+              <button (click)="refreshLocation()" class="ml-2 px-2 py-1 rounded border">Refresh</button>
+            </div>
+          </ng-container>
+          <ng-template #noLoc>
+            <div>Location not available. <button (click)="refreshLocation()" class="ml-2 px-2 py-1 rounded border">Enable</button></div>
+          </ng-template>
+        </div>
       </div>
 
       <div class="rounded-2xl border p-4">
@@ -60,7 +72,7 @@ export class SosPanelComponent {
   phone = '';
   email = '';
 
-  constructor(private geo: GeolocationService) {}
+  constructor(private geo: GeolocationService) { setTimeout(() => this.refreshLocation(), 0); }
 
   private persist() { save('brobot_contacts', this.contacts()); }
 
@@ -99,8 +111,27 @@ export class SosPanelComponent {
     }
   }
 
+  loc = signal<{ lat: number; lon: number; acc?: number } | null>(null);
+  locErr = signal<string | null>(null);
+
+  async refreshLocation() {
+    const pos = await this.geo.getCurrentPosition();
+    if (pos) {
+      this.loc.set({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy });
+      this.locErr.set(null);
+    } else {
+      this.loc.set(null);
+      this.locErr.set('Location unavailable');
+    }
+  }
+
+  mapHref(): string | null {
+    const l = this.loc();
+    return l ? `https://maps.google.com/?q=${l.lat},${l.lon}` : null;
+  }
+
   private async sendAlert() {
-    const mapLink = await this.geo.getShareableMapLink();
+    const mapLink = this.mapHref() || await this.geo.getShareableMapLink();
     const msg = `SOS from BroBot: I need help.${mapLink ? ` My location: ${mapLink}` : ''}`;
 
     // Try Web Share API first
