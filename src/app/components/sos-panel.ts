@@ -254,8 +254,8 @@ export class SosPanelComponent {
   retrievedAt: number | null = null;
 
   async refreshLocation() {
-    // Try high-accuracy multi-fix first
-    const best = await this.geo.watchBestFix(15000, 20);
+    // Try longer, higher-accuracy multi-fix first
+    const best = await this.geo.watchBestFix(30000, 10);
     const pos = best || (await this.geo.getCurrentPosition());
     if (pos) {
       this.loc.set({
