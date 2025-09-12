@@ -307,13 +307,26 @@ export class SosPanelComponent {
 
   private async sendAlert() {
     const l = this.loc();
+    const maps = l ? ` https://maps.google.com/?q=${l.lat},${l.lon}` : "";
     const msg =
       `SOS from BroBot: I need help.` +
       (l
-        ? ` My coordinates: ${l.lat}, ${l.lon}${this.address ? ` | ${this.address}` : ""}`
+        ? ` My coordinates: ${l.lat}, ${l.lon}${this.address ? ` | ${this.address}` : ""}${maps}`
         : "");
 
-    // Try Web Share API first (best UX on mobile)
+    const list = this.contacts();
+    if (!list.length) {
+      this.toast.show("No contacts", "Add a phone or email first", "warning");
+      return;
+    }
+
+    // 1) Native Android bridge (for Capacitor/Cordova builds). Sends SMS silently when allowed.
+    if (this.tryNativeSms(list, msg)) {
+      this.toast.show("SOS sent", "SMS dispatched to trusted contacts", "success");
+      return;
+    }
+
+    // 2) Web Share API (best UX on mobile)
     if (navigator.share) {
       try {
         await navigator.share({ title: "SOS", text: msg });
@@ -326,12 +339,7 @@ export class SosPanelComponent {
       } catch {}
     }
 
-    const list = this.contacts();
-    if (!list.length) {
-      this.toast.show("No contacts", "Add a phone or email first", "warning");
-      return;
-    }
-
+    // 3) sms:/mailto: fallbacks
     // Compose primary link by device capabilities
     let primaryHref: string | null = null;
     for (const c of list) {
@@ -382,5 +390,28 @@ export class SosPanelComponent {
         : "Copy pasted to clipboard—open your app and send.",
       opened ? "success" : "warning",
     );
+  }
+
+  private tryNativeSms(list: { phone?: string; email?: string }[], body: string): boolean {
+    try {
+      const withPhones = list.filter((c) => c.phone).map((c) => ({ phone: String(c.phone), body }));
+      if (!withPhones.length) return false;
+      const w: any = window as any;
+      // Preferred bulk method
+      if (w.BroBot?.sendBulkSms) {
+        const ok = w.BroBot.sendBulkSms(JSON.stringify(withPhones));
+        return !!ok;
+      }
+      // Fallback per-recipient methods commonly exposed by native bridges
+      if (w.BroBot?.sendSms) {
+        for (const r of withPhones) { w.BroBot.sendSms(r.phone, r.body); }
+        return true;
+      }
+      if (w.Android?.sendSms) {
+        for (const r of withPhones) { w.Android.sendSms(r.phone, r.body); }
+        return true;
+      }
+    } catch {}
+    return false;
   }
 }
