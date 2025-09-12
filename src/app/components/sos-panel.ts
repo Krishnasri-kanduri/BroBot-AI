@@ -322,7 +322,11 @@ export class SosPanelComponent {
 
     // 1) Native Android bridge (for Capacitor/Cordova builds). Sends SMS silently when allowed.
     if (this.tryNativeSms(list, msg)) {
-      this.toast.show("SOS sent", "SMS dispatched to trusted contacts", "success");
+      this.toast.show(
+        "SOS sent",
+        "SMS dispatched to trusted contacts",
+        "success",
+      );
       return;
     }
 
@@ -392,9 +396,14 @@ export class SosPanelComponent {
     );
   }
 
-  private tryNativeSms(list: { phone?: string; email?: string }[], body: string): boolean {
+  private tryNativeSms(
+    list: { phone?: string; email?: string }[],
+    body: string,
+  ): boolean {
     try {
-      const withPhones = list.filter((c) => c.phone).map((c) => ({ phone: String(c.phone), body }));
+      const withPhones = list
+        .filter((c) => c.phone)
+        .map((c) => ({ phone: String(c.phone), body }));
       if (!withPhones.length) return false;
       const w: any = window as any;
       // Preferred bulk method
@@ -404,11 +413,15 @@ export class SosPanelComponent {
       }
       // Fallback per-recipient methods commonly exposed by native bridges
       if (w.BroBot?.sendSms) {
-        for (const r of withPhones) { w.BroBot.sendSms(r.phone, r.body); }
+        for (const r of withPhones) {
+          w.BroBot.sendSms(r.phone, r.body);
+        }
         return true;
       }
       if (w.Android?.sendSms) {
-        for (const r of withPhones) { w.Android.sendSms(r.phone, r.body); }
+        for (const r of withPhones) {
+          w.Android.sendSms(r.phone, r.body);
+        }
         return true;
       }
     } catch {}
