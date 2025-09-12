@@ -11,7 +11,7 @@ interface Reminder { id: string; title: string; type: ReminderType; time?: strin
 @Component({
   selector: 'app-reminders',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule],
   template: `
   <section id="reminders" class="bg-white/80 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200">
