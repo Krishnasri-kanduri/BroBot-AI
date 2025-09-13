@@ -297,12 +297,13 @@ export class SosPanelComponent {
     return /Android/.test(navigator.userAgent);
   }
   private normalizePhone(input: string): string {
-    const raw = String(input || '');
-    const digits = raw.replace(/\D+/g, '');
-    if (raw.startsWith('+')) return raw;
-    if (digits.startsWith('91') && digits.length === 12) return `+${digits}`;
+    const raw = String(input || "");
+    const digits = raw.replace(/\D+/g, "");
+    if (raw.startsWith("+")) return raw;
+    if (digits.startsWith("91") && digits.length === 12) return `+${digits}`;
     if (digits.length === 10) return `+91${digits}`;
-    if (digits.startsWith('0') && digits.length === 11) return `+91${digits.slice(1)}`;
+    if (digits.startsWith("0") && digits.length === 11)
+      return `+91${digits.slice(1)}`;
     return raw;
   }
   private smsHref(phone: string, body: string) {
