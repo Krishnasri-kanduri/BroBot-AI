@@ -296,9 +296,19 @@ export class SosPanelComponent {
   private isAndroid() {
     return /Android/.test(navigator.userAgent);
   }
+  private normalizePhone(input: string): string {
+    const raw = String(input || '');
+    const digits = raw.replace(/\D+/g, '');
+    if (raw.startsWith('+')) return raw;
+    if (digits.startsWith('91') && digits.length === 12) return `+${digits}`;
+    if (digits.length === 10) return `+91${digits}`;
+    if (digits.startsWith('0') && digits.length === 11) return `+91${digits.slice(1)}`;
+    return raw;
+  }
   private smsHref(phone: string, body: string) {
     // iOS often needs sms:number&body=...; Android prefers sms:number?body=...
-    const p = encodeURIComponent(phone);
+    const norm = this.normalizePhone(phone);
+    const p = encodeURIComponent(norm);
     const b = encodeURIComponent(body);
     if (this.isIOS()) return `sms:${p}&body=${b}`;
     if (this.isAndroid()) return `sms:${p}?body=${b}`;
@@ -403,7 +413,7 @@ export class SosPanelComponent {
     try {
       const withPhones = list
         .filter((c) => c.phone)
-        .map((c) => ({ phone: String(c.phone), body }));
+        .map((c) => ({ phone: this.normalizePhone(String(c.phone)), body }));
       if (!withPhones.length) return false;
       const w: any = window as any;
       // Preferred bulk method
