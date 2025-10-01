@@ -23,7 +23,7 @@ function has(text?: string) {
 export class ChatService {
   // Code-based default Gemini key (used automatically)
   static readonly DEFAULT_GEMINI_KEY =
-    "AIzaSyCWg8CZXzRuLrLCHw_0NF8-Jw21zha7iNM";
+    "AIzaSyALzY4QB18ZmcaUiH1G0H3yE-tANpBMyW0";
 
   // Force provider by code (Gemini when key present)
   get provider(): "openai" | "gemini" | "endpoint" | "none" {
