@@ -254,9 +254,15 @@ export class SosPanelComponent {
   retrievedAt: number | null = null;
 
   async refreshLocation() {
-    // Try longer, higher-accuracy multi-fix first
-    const best = await this.geo.watchBestFix(30000, 10);
-    const pos = best || (await this.geo.getCurrentPosition());
+    // Race a quick fix (3s) with a best-fix watcher (up to 30s) for speed
+    const quick = (async () => {
+      try { return await this.geo.getCurrentPosition(); } catch { return null; }
+    })();
+    const bestP = this.geo.watchBestFix(30000, 10);
+
+    const first = await Promise.race([quick, bestP]);
+    const pos = first || (await bestP) || (await this.geo.getCurrentPosition());
+
     if (pos) {
       this.loc.set({
         lat: pos.coords.latitude,
