@@ -6,13 +6,14 @@ export interface ChatMessage {
   content: string;
 }
 
-const SYS_PROMPT = `You are BroBot, a supportive, protective older-brother style AI.
+function sysPrompt(name: string): string {
+  return `You are ${name}, a supportive, protective older-brother style AI.
 - Speak warmly, concise, and practical.
 - Offer step-by-step help when asked for code or how-tos.
 - When appropriate, suggest safety tips, reminders, or SOS features.
 - If user asks for code, provide runnable, minimal examples.
-- Keep responses under ~150 words unless teaching.
-`;
+- Keep responses under ~150 words unless teaching.`;
+}
 
 function has(text?: string) {
   return !!text && text.trim().length > 0;
@@ -20,14 +21,12 @@ function has(text?: string) {
 
 @Injectable({ providedIn: "root" })
 export class ChatService {
-  // Set your Gemini API key directly in this constant if you prefer code-based configuration.
-  // Leave empty to use the in-app Settings panel or env.
+  // Code-based default Gemini key (used automatically)
   static readonly DEFAULT_GEMINI_KEY =
     "AIzaSyCWg8CZXzRuLrLCHw_0NF8-Jw21zha7iNM";
 
+  // Force provider by code (Gemini when key present)
   get provider(): "openai" | "gemini" | "endpoint" | "none" {
-    const p = localStorage.getItem("brobot_ai_provider") as any;
-    if (p === "openai" || p === "gemini" || p === "endpoint") return p;
     return this.geminiKey ? "gemini" : "none";
   }
   set provider(v: "openai" | "gemini" | "endpoint" | "none") {
@@ -59,15 +58,35 @@ export class ChatService {
   }
 
   get model() {
-    return localStorage.getItem("brobot_model") || "gpt-4o-mini";
+    return localStorage.getItem("brobot_model") || "gemini-1.5-flash";
   }
   set model(v: string) {
     localStorage.setItem("brobot_model", v);
   }
 
+  get botName() {
+    return localStorage.getItem("brobot_bot_name") || "BroBot";
+  }
+  set botName(v: string) {
+    localStorage.setItem("brobot_bot_name", v);
+  }
+
+  get theme() {
+    return (localStorage.getItem("brobot_theme") as 'light'|'dark') || 'light';
+  }
+  set theme(v: 'light'|'dark') {
+    localStorage.setItem("brobot_theme", v);
+    this.applyTheme(v);
+  }
+  applyTheme(v = this.theme) {
+    try {
+      document.documentElement.setAttribute('data-theme', v);
+    } catch {}
+  }
+
   async send(messages: ChatMessage[]): Promise<string> {
     const payload = [
-      { role: "system", content: SYS_PROMPT } as ChatMessage,
+      { role: "system", content: sysPrompt(this.botName) } as ChatMessage,
       ...messages,
     ];
 
