@@ -17,6 +17,10 @@ function isNativeCapacitor(): boolean {
 
 bootstrapApplication(App, appConfig)
   .then(() => {
+    try {
+      const theme = (localStorage.getItem('brobot_theme') as 'light'|'dark' | null);
+      if (theme) document.documentElement.setAttribute('data-theme', theme);
+    } catch {}
     if ("serviceWorker" in navigator && !isNativeCapacitor()) {
       navigator.serviceWorker
         .register("/firebase-messaging-sw.js")
