@@ -111,7 +111,8 @@ export class ChatService {
       has(this.geminiKey)
     ) {
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiKey}`;
+        const model = this.model || 'gemini-1.5-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
         const parts = payload.map((m) => ({
           role: m.role === "assistant" ? "model" : "user",
           parts: [{ text: m.content }],
@@ -124,7 +125,10 @@ export class ChatService {
         const data = await res.json();
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (has(text)) return text;
-      } catch {}
+        if (data?.error?.message) return `Error from Gemini: ${data.error.message}`;
+      } catch (e: any) {
+        // ignore network error, fallback below
+      }
     }
 
     // Fallback lightweight heuristics
