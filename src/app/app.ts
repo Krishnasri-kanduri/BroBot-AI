@@ -2,7 +2,9 @@ import { Component } from "@angular/core";
 import { HeaderComponent } from "./components/header";
 import { MobileNavComponent } from "./components/mobile-nav";
 import { ToastContainerComponent } from "./components/toast-container";
-import { RouterOutlet } from "@angular/router";
+import { Router, RouterOutlet } from "@angular/router";
+import { Location } from "@angular/common";
+import { getCapacitor, onHardwareBack } from "./utils/native";
 
 @Component({
   selector: "app-root",
@@ -13,4 +15,19 @@ import { RouterOutlet } from "@angular/router";
 })
 export class App {
   year = new Date().getFullYear();
+  constructor(private router: Router, private location: Location) {
+    // Hardware back handling for Android builds
+    onHardwareBack(() => {
+      if (this.router.url !== "/") {
+        this.location.back();
+        return false; // prevent default
+      }
+      try {
+        const cap: any = getCapacitor();
+        const App = (cap?.Plugins?.App || cap?.App) as any;
+        if (App?.exitApp) App.exitApp();
+      } catch {}
+      return false;
+    });
+  }
 }
