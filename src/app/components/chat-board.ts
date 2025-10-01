@@ -194,7 +194,7 @@ export class ChatBoardComponent {
   }
 
   isOnline() {
-    return this.provider !== "none";
+    return this.ai.provider !== "none";
   }
   onlineLabel() {
     return this.isOnline() ? "Online" : "Demo";
