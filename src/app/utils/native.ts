@@ -5,7 +5,11 @@ export function getCapacitor(): any {
 export function isNativeCapacitor(): boolean {
   const cap = getCapacitor();
   try {
-    return !!cap?.isNativePlatform?.() || cap?.getPlatform?.() === 'android' || cap?.getPlatform?.() === 'ios';
+    return (
+      !!cap?.isNativePlatform?.() ||
+      cap?.getPlatform?.() === "android" ||
+      cap?.getPlatform?.() === "ios"
+    );
   } catch {
     return false;
   }
@@ -21,7 +25,7 @@ export function onHardwareBack(handler: () => void | boolean): void {
     const cap = getCapacitor();
     const App = (cap?.Plugins?.App || (cap as any)?.App) as any;
     if (App?.addListener) {
-      App.addListener('backButton', () => {
+      App.addListener("backButton", () => {
         try {
           const res = handler();
           if (res === false) return;

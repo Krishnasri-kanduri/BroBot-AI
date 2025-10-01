@@ -9,13 +9,21 @@ import { getCapacitor, onHardwareBack } from "./utils/native";
 @Component({
   selector: "app-root",
   standalone: true,
-  imports: [HeaderComponent, RouterOutlet, MobileNavComponent, ToastContainerComponent],
+  imports: [
+    HeaderComponent,
+    RouterOutlet,
+    MobileNavComponent,
+    ToastContainerComponent,
+  ],
   templateUrl: "./app.html",
   styleUrl: "./app.css",
 })
 export class App {
   year = new Date().getFullYear();
-  constructor(private router: Router, private location: Location) {
+  constructor(
+    private router: Router,
+    private location: Location,
+  ) {
     // Hardware back handling for Android builds
     onHardwareBack(() => {
       if (this.router.url !== "/") {

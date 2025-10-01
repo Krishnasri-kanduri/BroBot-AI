@@ -256,7 +256,11 @@ export class SosPanelComponent {
   async refreshLocation() {
     // Race a quick fix (3s) with a best-fix watcher (up to 30s) for speed
     const quick = (async () => {
-      try { return await this.geo.getCurrentPosition(); } catch { return null; }
+      try {
+        return await this.geo.getCurrentPosition();
+      } catch {
+        return null;
+      }
     })();
     const bestP = this.geo.watchBestFix(30000, 10);
 

@@ -7,15 +7,18 @@ export class GeolocationService {
     // Prefer Capacitor native geolocation when running inside the Android app
     try {
       if (isNativeCapacitor()) {
-        const Geo: any = getPlugin('Geolocation');
+        const Geo: any = getPlugin("Geolocation");
         if (Geo?.getCurrentPosition) {
-          const pos = await Geo.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
+          const pos = await Geo.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 15000,
+          });
           return this.asWebPosition(pos);
         }
       }
     } catch {}
 
-    if (!('geolocation' in navigator)) return null;
+    if (!("geolocation" in navigator)) return null;
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve(pos),
@@ -44,21 +47,29 @@ export class GeolocationService {
     // Native watch when available
     try {
       if (isNativeCapacitor()) {
-        const Geo: any = getPlugin('Geolocation');
+        const Geo: any = getPlugin("Geolocation");
         if (Geo?.watchPosition) {
           return await new Promise((resolve) => {
             let best: any = null;
-            const stop = Geo.watchPosition({ enableHighAccuracy: true }, (pos: any, err: any) => {
-              if (err) return; // keep waiting until timeout
-              if (!pos) return;
-              if (!best || pos.coords.accuracy < best.coords.accuracy) best = pos;
-              if (pos.coords.accuracy <= minAccuracy) {
-                try { stop && Geo.clearWatch && Geo.clearWatch({ id: stop }); } catch {}
-                resolve(this.asWebPosition(best));
-              }
-            });
+            const stop = Geo.watchPosition(
+              { enableHighAccuracy: true },
+              (pos: any, err: any) => {
+                if (err) return; // keep waiting until timeout
+                if (!pos) return;
+                if (!best || pos.coords.accuracy < best.coords.accuracy)
+                  best = pos;
+                if (pos.coords.accuracy <= minAccuracy) {
+                  try {
+                    stop && Geo.clearWatch && Geo.clearWatch({ id: stop });
+                  } catch {}
+                  resolve(this.asWebPosition(best));
+                }
+              },
+            );
             setTimeout(() => {
-              try { stop && Geo.clearWatch && Geo.clearWatch({ id: stop }); } catch {}
+              try {
+                stop && Geo.clearWatch && Geo.clearWatch({ id: stop });
+              } catch {}
               resolve(best ? this.asWebPosition(best) : null);
             }, timeoutMs);
           });
@@ -66,7 +77,7 @@ export class GeolocationService {
       }
     } catch {}
 
-    if (!('geolocation' in navigator)) return null;
+    if (!("geolocation" in navigator)) return null;
     return new Promise((resolve) => {
       let best: GeolocationPosition | null = null;
       const id = navigator.geolocation.watchPosition(
@@ -103,10 +114,10 @@ export class GeolocationService {
         latitude: p?.coords?.latitude,
         longitude: p?.coords?.longitude,
         accuracy: p?.coords?.accuracy ?? 0,
-        altitude: p?.coords?.altitude ?? null as any,
-        altitudeAccuracy: p?.coords?.altitudeAccuracy ?? null as any,
-        heading: p?.coords?.heading ?? null as any,
-        speed: p?.coords?.speed ?? null as any,
+        altitude: p?.coords?.altitude ?? (null as any),
+        altitudeAccuracy: p?.coords?.altitudeAccuracy ?? (null as any),
+        heading: p?.coords?.heading ?? (null as any),
+        speed: p?.coords?.speed ?? (null as any),
       },
       timestamp: p?.timestamp ?? Date.now(),
     } as GeolocationPosition;
