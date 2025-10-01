@@ -61,7 +61,11 @@ interface Message {
         </label>
         <label class="flex flex-col md:col-span-1">
           <span class="text-xs text-slate-600">Theme</span>
-          <select [(ngModel)]="theme" name="theme" class="px-2 py-1.5 rounded-lg border">
+          <select
+            [(ngModel)]="theme"
+            name="theme"
+            class="px-2 py-1.5 rounded-lg border"
+          >
             <option value="light">Light</option>
             <option value="dark">Dark</option>
           </select>
@@ -138,7 +142,7 @@ export class ChatBoardComponent {
   showSettings = false;
 
   botName = "BroBot";
-  theme: 'light'|'dark' = 'light';
+  theme: "light" | "dark" = "light";
 
   constructor(private ai: ChatService) {
     this.botName = this.ai.botName;
@@ -154,7 +158,7 @@ export class ChatBoardComponent {
   }
 
   saveSettings() {
-    this.ai.botName = this.botName.trim() || 'BroBot';
+    this.ai.botName = this.botName.trim() || "BroBot";
     this.ai.theme = this.theme;
   }
 

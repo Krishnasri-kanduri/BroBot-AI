@@ -72,15 +72,17 @@ export class ChatService {
   }
 
   get theme() {
-    return (localStorage.getItem("brobot_theme") as 'light'|'dark') || 'light';
+    return (
+      (localStorage.getItem("brobot_theme") as "light" | "dark") || "light"
+    );
   }
-  set theme(v: 'light'|'dark') {
+  set theme(v: "light" | "dark") {
     localStorage.setItem("brobot_theme", v);
     this.applyTheme(v);
   }
   applyTheme(v = this.theme) {
     try {
-      document.documentElement.setAttribute('data-theme', v);
+      document.documentElement.setAttribute("data-theme", v);
     } catch {}
   }
 
@@ -130,7 +132,7 @@ export class ChatService {
       has(this.geminiKey)
     ) {
       try {
-        const model = this.model || 'gemini-1.5-flash';
+        const model = this.model || "gemini-1.5-flash";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
         const parts = payload.map((m) => ({
           role: m.role === "assistant" ? "model" : "user",
@@ -144,7 +146,8 @@ export class ChatService {
         const data = await res.json();
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (has(text)) return text;
-        if (data?.error?.message) return `Error from Gemini: ${data.error.message}`;
+        if (data?.error?.message)
+          return `Error from Gemini: ${data.error.message}`;
       } catch (e: any) {
         // ignore network error, fallback below
       }

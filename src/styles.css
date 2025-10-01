@@ -3,14 +3,28 @@
 @tailwind utilities;
 
 @layer base {
-  html { @apply antialiased; }
-  body { @apply bg-white text-slate-800 font-sans; }
-  :root[data-theme="dark"] body { @apply bg-slate-900 text-slate-100; }
-  :root[data-theme="dark"] header { @apply bg-slate-800/70 border-slate-700; }
-  :root[data-theme="dark"] footer { @apply bg-slate-800/70 border-slate-700 text-slate-400; }
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-white text-slate-800 font-sans;
+  }
+  :root[data-theme="dark"] body {
+    @apply bg-slate-900 text-slate-100;
+  }
+  :root[data-theme="dark"] header {
+    @apply bg-slate-800/70 border-slate-700;
+  }
+  :root[data-theme="dark"] footer {
+    @apply bg-slate-800/70 border-slate-700 text-slate-400;
+  }
 }
 
 @layer components {
-  .glass { @apply bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60; }
-  :root[data-theme="dark"] .glass { @apply bg-slate-800/60; }
+  .glass {
+    @apply bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60;
+  }
+  :root[data-theme="dark"] .glass {
+    @apply bg-slate-800/60;
+  }
 }
