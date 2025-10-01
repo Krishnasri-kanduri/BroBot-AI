@@ -58,7 +58,7 @@ export class ChatService {
   }
 
   get model() {
-    return localStorage.getItem("brobot_model") || "gemini-1.5-flash-latest";
+    return localStorage.getItem("brobot_model") || "gemini-1.5-flash";
   }
   set model(v: string) {
     localStorage.setItem("brobot_model", v);
@@ -132,19 +132,20 @@ export class ChatService {
       has(this.geminiKey)
     ) {
       try {
-        const model = this.model || "gemini-1.5-flash-latest";
+        const model = this.model || "gemini-1.5-flash";
         const urlV1 = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
         const urlV1beta = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
         const parts = payload.map((m) => ({
           role: m.role === "assistant" ? "model" : "user",
           parts: [{ text: m.content }],
         }));
-        let res = await fetch(urlV1, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
+        // Try v1beta first (model aliases often resolve here)
+        let res = await fetch(urlV1beta, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
         let data = await res.json();
         let text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (has(text)) return text;
         if (!res.ok || data?.error) {
-          res = await fetch(urlV1beta, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
+          res = await fetch(urlV1, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
           data = await res.json();
           text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (has(text)) return text;
