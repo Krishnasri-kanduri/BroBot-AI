@@ -58,7 +58,7 @@ export class ChatService {
   }
 
   get model() {
-    return localStorage.getItem("brobot_model") || "gemini-1.5-flash";
+    return localStorage.getItem("brobot_model") || "gemini-1.5-flash-latest";
   }
   set model(v: string) {
     localStorage.setItem("brobot_model", v);
@@ -132,22 +132,24 @@ export class ChatService {
       has(this.geminiKey)
     ) {
       try {
-        const model = this.model || "gemini-1.5-flash";
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
+        const model = this.model || "gemini-1.5-flash-latest";
+        const urlV1 = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
+        const urlV1beta = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
         const parts = payload.map((m) => ({
           role: m.role === "assistant" ? "model" : "user",
           parts: [{ text: m.content }],
         }));
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ contents: parts }),
-        });
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        let res = await fetch(urlV1, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
+        let data = await res.json();
+        let text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (has(text)) return text;
-        if (data?.error?.message)
-          return `Error from Gemini: ${data.error.message}`;
+        if (!res.ok || data?.error) {
+          res = await fetch(urlV1beta, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
+          data = await res.json();
+          text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (has(text)) return text;
+          if (data?.error?.message) return `Error from Gemini: ${data.error.message}`;
+        }
       } catch (e: any) {
         // ignore network error, fallback below
       }
