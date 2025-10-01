@@ -22,7 +22,7 @@ interface Message {
         class="px-5 py-4 border-b border-slate-200 flex items-center justify-between"
       >
         <div>
-          <h2 class="font-semibold text-slate-900">Chat with Bro</h2>
+          <h2 class="font-semibold text-slate-900">Chat with {{ botName }}</h2>
           <p class="text-xs text-slate-500">
             Ask anything — advice, tips, safety questions
           </p>
@@ -50,64 +50,22 @@ interface Message {
         *ngIf="showSettings"
         class="px-4 py-3 border-b bg-slate-50/70 grid grid-cols-1 md:grid-cols-4 gap-2 text-sm"
       >
-        <label class="flex flex-col">
-          <span class="text-xs text-slate-600">Provider</span>
-          <select
-            [(ngModel)]="provider"
-            name="provider"
+        <label class="flex flex-col md:col-span-2">
+          <span class="text-xs text-slate-600">Chatbot nickname</span>
+          <input
+            [(ngModel)]="botName"
+            name="botName"
             class="px-2 py-1.5 rounded-lg border"
-          >
-            <option value="none">Fallback (demo)</option>
-            <option value="openai">OpenAI</option>
-            <option value="gemini">Gemini</option>
-            <option value="endpoint">Custom Endpoint</option>
+            placeholder="e.g. BroBot, Krishna, Dada"
+          />
+        </label>
+        <label class="flex flex-col md:col-span-1">
+          <span class="text-xs text-slate-600">Theme</span>
+          <select [(ngModel)]="theme" name="theme" class="px-2 py-1.5 rounded-lg border">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
           </select>
         </label>
-        <label *ngIf="provider === 'openai'" class="flex flex-col">
-          <span class="text-xs text-slate-600">OpenAI API Key</span>
-          <input
-            [(ngModel)]="openaiKey"
-            name="openaiKey"
-            type="password"
-            class="px-2 py-1.5 rounded-lg border"
-            placeholder="sk-..."
-          />
-        </label>
-        <label *ngIf="provider === 'gemini'" class="flex flex-col">
-          <span class="text-xs text-slate-600">Gemini API Key</span>
-          <input
-            [(ngModel)]="geminiKey"
-            name="geminiKey"
-            type="password"
-            class="px-2 py-1.5 rounded-lg border"
-            placeholder="AIza..."
-          />
-        </label>
-        <label
-          *ngIf="provider === 'endpoint'"
-          class="flex flex-col md:col-span-2"
-        >
-          <span class="text-xs text-slate-600">Endpoint URL</span>
-          <input
-            [(ngModel)]="endpoint"
-            name="endpoint"
-            class="px-2 py-1.5 rounded-lg border"
-            placeholder="https://your-domain.com/api/chat"
-          />
-        </label>
-        <label class="flex flex-col">
-          <span class="text-xs text-slate-600">Model</span>
-          <input
-            [(ngModel)]="model"
-            name="model"
-            class="px-2 py-1.5 rounded-lg border"
-            placeholder="gpt-4o-mini / gemini-1.5-flash"
-          />
-        </label>
-        <div class="md:col-span-3 text-xs text-slate-500">
-          Keys/endpoint are stored only on this device (localStorage). For
-          production, route via a secure server.
-        </div>
         <div class="md:col-span-1 flex items-end justify-end">
           <button
             (click)="saveSettings()"
@@ -179,18 +137,13 @@ export class ChatBoardComponent {
   typing = false;
   showSettings = false;
 
-  provider = "none";
-  openaiKey = "";
-  geminiKey = "";
-  endpoint = "";
-  model = "gpt-4o-mini";
+  botName = "BroBot";
+  theme: 'light'|'dark' = 'light';
 
   constructor(private ai: ChatService) {
-    this.provider = this.ai.provider;
-    this.openaiKey = this.ai.openaiKey;
-    this.geminiKey = this.ai.geminiKey;
-    this.endpoint = this.ai.endpoint;
-    this.model = this.ai.model;
+    this.botName = this.ai.botName;
+    this.theme = this.ai.theme;
+    this.ai.applyTheme(this.theme);
   }
 
   isOnline() {
@@ -201,11 +154,8 @@ export class ChatBoardComponent {
   }
 
   saveSettings() {
-    localStorage.setItem("brobot_ai_provider", this.provider);
-    localStorage.setItem("brobot_openai_key", this.openaiKey);
-    localStorage.setItem("brobot_gemini_key", this.geminiKey);
-    localStorage.setItem("brobot_chat_endpoint", this.endpoint);
-    localStorage.setItem("brobot_model", this.model);
+    this.ai.botName = this.botName.trim() || 'BroBot';
+    this.ai.theme = this.theme;
   }
 
   async send(e: Event) {
