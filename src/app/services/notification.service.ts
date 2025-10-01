@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ToastService } from './toast.service';
+import { getPlugin, isNativeCapacitor } from '../utils/native';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -17,6 +18,17 @@ export class NotificationService {
   }
 
   async ensurePermission(): Promise<NotificationPermission> {
+    // On native Android, use Capacitor PushNotifications permission if available
+    try {
+      if (isNativeCapacitor()) {
+        const Push: any = getPlugin('PushNotifications');
+        if (Push?.requestPermissions) {
+          const res = await Push.requestPermissions();
+          return (res?.receive === 'granted') ? 'granted' : 'denied';
+        }
+      }
+    } catch {}
+
     if (!('Notification' in window)) return 'denied';
     if (Notification.permission === 'default') {
       try { return await Notification.requestPermission(); } catch { return Notification.permission; }
