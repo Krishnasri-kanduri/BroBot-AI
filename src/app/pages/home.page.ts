@@ -39,25 +39,13 @@ import { RouterLink } from "@angular/router";
           </div>
         </a>
 
-        <div
-          class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:max-w-4xl md:mx-auto"
-        >
+        <div class="mt-4 md:max-w-4xl md:mx-auto">
           <a routerLink="/reminders" class="block">
             <div
               class="rounded-2xl p-5 bg-white/90 backdrop-blur border border-white/60 shadow-card text-left"
             >
               <div class="text-xl font-semibold text-slate-800">Reminders</div>
               <div class="text-xs text-slate-500">Daily & Occasions</div>
-            </div>
-          </a>
-          <a routerLink="/safety" class="block">
-            <div
-              class="rounded-2xl p-5 bg-white/90 backdrop-blur border border-white/60 shadow-card text-left"
-            >
-              <div class="text-xl font-semibold text-slate-800">Safety Hub</div>
-              <div class="text-xs text-slate-500">
-                SOS & Trusted Contacts + Health
-              </div>
             </div>
           </a>
         </div>
