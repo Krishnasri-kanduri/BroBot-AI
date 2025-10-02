@@ -1,7 +1,8 @@
 export type PersistKey =
   | "brobot_contacts"
   | "brobot_reminders"
-  | "brobot_steps";
+  | "brobot_steps"
+  | "brobot_water";
 
 export function load<T>(key: PersistKey, fallback: T): T {
   try {
