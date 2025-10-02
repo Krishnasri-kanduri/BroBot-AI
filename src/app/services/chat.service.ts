@@ -132,27 +132,50 @@ export class ChatService {
       has(this.geminiKey)
     ) {
       try {
-        const model = this.model || "gemini-1.5-flash";
-        const urlV1 = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
-        const urlV1beta = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.geminiKey}`;
+        const candidateModels = Array.from(new Set([
+          this.model,
+          "gemini-1.5-flash",
+          "gemini-1.5-flash-latest",
+          "gemini-1.5-flash-001",
+          "gemini-1.5-pro",
+          "gemini-1.5-pro-latest",
+          "gemini-1.5-pro-001",
+        ].filter(Boolean))) as string[];
+
         const parts = payload.map((m) => ({
           role: m.role === "assistant" ? "model" : "user",
           parts: [{ text: m.content }],
         }));
-        // Try v1beta first (model aliases often resolve here)
-        let res = await fetch(urlV1beta, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
-        let data = await res.json();
-        let text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (has(text)) return text;
-        if (!res.ok || data?.error) {
-          res = await fetch(urlV1, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
-          data = await res.json();
-          text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (has(text)) return text;
-          if (data?.error?.message) return `Error from Gemini: ${data.error.message}`;
+
+        for (const mdl of candidateModels) {
+          const urlV1beta = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(mdl)}:generateContent?key=${this.geminiKey}`;
+          const urlV1 = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(mdl)}:generateContent?key=${this.geminiKey}`;
+
+          // v1beta first
+          try {
+            let res = await fetch(urlV1beta, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
+            let data = await res.json();
+            let text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (has(text)) return text;
+            if (!res.ok && data?.error?.status !== 'NOT_FOUND') {
+              // Other error, stop trying models
+              if (data?.error?.message) return `Error from Gemini: ${data.error.message}`;
+            }
+          } catch {}
+
+          // v1 fallback
+          try {
+            let res = await fetch(urlV1, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
+            let data = await res.json();
+            let text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (has(text)) return text;
+            if (!res.ok && data?.error?.status !== 'NOT_FOUND') {
+              if (data?.error?.message) return `Error from Gemini: ${data.error.message}`;
+            }
+          } catch {}
         }
       } catch (e: any) {
-        // ignore network error, fallback below
+        // ignore and fallback below
       }
     }
 
