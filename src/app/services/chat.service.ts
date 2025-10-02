@@ -130,48 +130,55 @@ export class ChatService {
       has(this.geminiKey)
     ) {
       try {
-        const candidateModels = Array.from(new Set([
-          this.model,
-          "gemini-1.5-flash",
-          "gemini-1.5-flash-latest",
-          "gemini-1.5-flash-001",
-          "gemini-1.5-pro",
-          "gemini-1.5-pro-latest",
-          "gemini-1.5-pro-001",
-        ].filter(Boolean))) as string[];
-
         const parts = payload.map((m) => ({
           role: m.role === "assistant" ? "model" : "user",
           parts: [{ text: m.content }],
         }));
 
-        for (const mdl of candidateModels) {
+        // Try configured/candidate models first
+        const candidates = Array.from(new Set([
+          this.model,
+          "gemini-1.5-flash",
+          "gemini-1.5-flash-latest",
+          "gemini-1.5-pro",
+        ].filter(Boolean))) as string[];
+
+        const tryGen = async (mdl: string): Promise<string | null> => {
           const urlV1beta = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(mdl)}:generateContent?key=${this.geminiKey}`;
           const urlV1 = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(mdl)}:generateContent?key=${this.geminiKey}`;
-
-          // v1beta first
           try {
             let res = await fetch(urlV1beta, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
             let data = await res.json();
             let text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (has(text)) return text;
-            if (!res.ok && data?.error?.status !== 'NOT_FOUND') {
-              // Other error, stop trying models
-              if (data?.error?.message) return `Error from Gemini: ${data.error.message}`;
-            }
+            if (!res.ok && data?.error?.status !== 'NOT_FOUND') return data?.error?.message ? `Error from Gemini: ${data.error.message}` : null;
           } catch {}
-
-          // v1 fallback
           try {
             let res = await fetch(urlV1, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: parts }) });
             let data = await res.json();
             let text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (has(text)) return text;
-            if (!res.ok && data?.error?.status !== 'NOT_FOUND') {
-              if (data?.error?.message) return `Error from Gemini: ${data.error.message}`;
-            }
+            if (!res.ok && data?.error?.status !== 'NOT_FOUND') return data?.error?.message ? `Error from Gemini: ${data.error.message}` : null;
           } catch {}
+          return null;
+        };
+
+        for (const mdl of candidates) {
+          const out = await tryGen(mdl!);
+          if (has(out || undefined)) return out!;
         }
+
+        // If all failed with NOT_FOUND, list available models and pick the first supporting generateContent
+        try {
+          const list = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${this.geminiKey}`);
+          const j = await list.json();
+          const found = (j?.models || []).find((m: any) => Array.isArray(m?.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'));
+          if (found?.name) {
+            const name = String(found.name).replace(/^models\//, '');
+            const out = await tryGen(name);
+            if (has(out || undefined)) return out!;
+          }
+        } catch {}
       } catch (e: any) {
         // ignore and fallback below
       }
