@@ -21,9 +21,8 @@ function has(text?: string) {
 
 @Injectable({ providedIn: "root" })
 export class ChatService {
-  // Code-based default Gemini key (used automatically)
-  static readonly DEFAULT_GEMINI_KEY =
-    "AIzaSyALzY4QB18ZmcaUiH1G0H3yE-tANpBMyW0";
+  // Do not hard-code secrets in code. Defaults to empty.
+  static readonly DEFAULT_GEMINI_KEY = "";
 
   // Force provider by code (Gemini when key present)
   get provider(): "openai" | "gemini" | "endpoint" | "none" {
@@ -41,10 +40,9 @@ export class ChatService {
   }
 
   get geminiKey() {
-    return (
-      localStorage.getItem("brobot_gemini_key") ||
-      ChatService.DEFAULT_GEMINI_KEY
-    );
+    const k = localStorage.getItem("brobot_gemini_key");
+    const w = (globalThis as any).BROBOT_GEMINI_KEY as string | undefined;
+    return (k && k.trim()) || (w && w.trim()) || ChatService.DEFAULT_GEMINI_KEY;
   }
   set geminiKey(v: string) {
     localStorage.setItem("brobot_gemini_key", v);
