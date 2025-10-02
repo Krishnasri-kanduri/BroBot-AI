@@ -41,9 +41,6 @@ import { filter } from "rxjs/operators";
           <a routerLink="/" class="hover:text-slate-900 transition-colors"
             >Home</a
           >
-          <a routerLink="/chat" class="hover:text-slate-900 transition-colors"
-            >Chat</a
-          >
           <a
             routerLink="/reminders"
             class="hover:text-slate-900 transition-colors"
