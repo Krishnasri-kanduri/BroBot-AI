@@ -70,7 +70,11 @@ interface Message {
             <option value="dark">Dark</option>
           </select>
         </label>
-        <div class="md:col-span-1 flex items-end justify-end">
+        <label class="flex flex-col md:col-span-1">
+          <span class="text-xs text-slate-600">Gemini API Key</span>
+          <input [(ngModel)]="geminiKey" name="geminiKey" type="password" class="px-2 py-1.5 rounded-lg border" placeholder="AIza..." />
+        </label>
+        <div class="md:col-span-4 flex items-end justify-end">
           <button
             (click)="saveSettings()"
             class="px-3 py-2 rounded-lg bg-brand-600 text-white"
@@ -143,10 +147,12 @@ export class ChatBoardComponent {
 
   botName = "BroBot";
   theme: "light" | "dark" = "light";
+  geminiKey = "";
 
   constructor(private ai: ChatService) {
     this.botName = this.ai.botName;
     this.theme = this.ai.theme;
+    this.geminiKey = localStorage.getItem('brobot_gemini_key') || '';
     this.ai.applyTheme(this.theme);
   }
 
@@ -160,6 +166,7 @@ export class ChatBoardComponent {
   saveSettings() {
     this.ai.botName = this.botName.trim() || "BroBot";
     this.ai.theme = this.theme;
+    if (this.geminiKey?.trim()) localStorage.setItem('brobot_gemini_key', this.geminiKey.trim());
   }
 
   async send(e: Event) {
