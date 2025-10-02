@@ -25,14 +25,14 @@ import { RouterLink } from "@angular/router";
           Your intelligent companion for Safety & Assistance
         </p>
 
-        <a routerLink="/chat" class="mt-6 block md:max-w-3xl md:mx-auto">
+        <a routerLink="/safety" class="mt-6 block md:max-w-3xl md:mx-auto">
           <div
             class="rounded-2xl p-4 bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-card flex items-center justify-between"
           >
             <div class="text-left">
-              <div class="font-semibold">Smart Chat with BroBot</div>
+              <div class="font-semibold">Safety Hub & SOS</div>
               <div class="text-xs opacity-90">
-                Ask about anything — your caring AI brother
+                Quick SOS, trusted contacts, and health checks
               </div>
             </div>
             <div class="text-2xl">➜</div>
